@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>秘められた力と最強の武器 診断</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* ラジオボタンを選択した時の色を変えるための設定 */
+        .radio-group input:checked + label {
+            background-color: #4f46e5;
+            color: white;
+            border-color: #4f46e5;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 p-4 md:p-10">
+
+<div class="max-w-2xl mx-auto bg-white rounded-3xl shadow-xl overflow-hidden">
+    <div class="bg-indigo-600 p-8 text-white text-center">
+        <h1 class="text-3xl font-bold">⚔️ 秘められた力 診断</h1>
+        <p class="mt-2 opacity-90">あなたの魂に眠る「最強の武器」を呼び覚ましましょう</p>
+    </div>
+
+    <div class="p-8">
+        <div id="quiz" class="space-y-10"></div>
+
+        <div class="mt-12 text-center">
+            <button onclick="showResult()" class="px-10 py-4 bg-indigo-600 hover:bg-indigo-700 text-white text-lg font-bold rounded-full transition-all transform hover:scale-105 shadow-lg">
+                真の姿を現せ！ (結果を表示)
+            </button>
+        </div>
+
+        <div id="result" class="mt-12 hidden p-8 bg-slate-50 rounded-2xl border-2 border-dashed border-indigo-200">
+        </div>
+    </div>
+</div>
+
+<script>
+// 診断データの定義
+const DOMAINS = [
+    { id: "word", name: "言葉の剣士", icon: "🏹", qs: ["本を読むのが好きだ。","語彙に興味がある。","文章を書くのが得意だ。","話すことで考えがまとまる。","物語を作るのが楽しい。"] },
+    { id: "logic", name: "理詰めの賢者", icon: "🧪", qs: ["「なぜ？」「どうして？」と原因や理由をよく尋ねる。","パズルや算数の問題、クイズを解くのが好きだ。","筋道を立てて考え、明確な目的をもって行動する。","問題や矛盾点を見つけて、解決しようとすることが好きだ。","仮説を立てるのが楽しい。"] },
+    { id: "image", name: "イメージの魔術師", icon: "🖼️", qs: ["地図や立体的なもの（積み木、パズル）で遊ぶのが得意だ。","絵が好き。","空想したり、夢の話を鮮明に覚えていたりする。","新しい場所でも、道順をよく覚えていたり、距離感覚がある。","写真や映像を見たり、カメラを使ったりすることに興味がある。"] },
+    { id: "earth", name: "大地の探索者", icon: "🌳", qs: ["動物、虫、植物など、生き物に触れるのが好きで詳しい。","図鑑や科学館、動物園に行くのが好きだ。","天気や地理、宇宙など、自然現象に強い関心がある。","物を収集したり、分類したり、整理整頓するのが好きだ。","自然の中で過ごすことを好み、環境の変化に気づきやすい。"] },
+    { id: "music", name: "音の指揮者", icon: "🎶", qs: ["音楽を聴くと自然と体が動いたり、鼻歌を歌ったりする。","音楽が好き。","音に敏感。","歌で暗記できる。","メロディを覚えやすい。"] },
+    { id: "action", name: "行動の勇者", icon: "🏃", qs: ["覚えたことをすぐに「やってみたい」と実演したがる。","やってみて覚える。","じっとしているより動きたい。","スポーツやダンスが得意。","実践的な学びが好き。"] },
+    { id: "druid", name: "共感のドルイド", icon: "🤝", qs: ["初対面の人にも話しかけ、友だちが多い。","チームでの遊びを、一人でする遊びよりも好む。","友だちや家族の気持ち（喜び、悲しみなど）を察するのが得意だ。","教えるのが好き。","誰とでも円滑なコミュニケーションを取ろうと配慮する。"] },
+    { id: "nature", name: "内なる探究者", icon: "🧘", qs: ["自分の好きなこと、嫌いなことがはっきりしている。","日記を書く。","一人で遊んだり、自分のペースで行動したりするのを好む。","感情に敏感。","一人時間が大切。"] },
+];
+
+// 診断シートを画面に作る関数
+function renderQuiz() {
+    const quizDiv = document.getElementById("quiz");
+    DOMAINS.forEach(domain => {
+        const section = document.createElement("div");
+        section.innerHTML = `<h3 class="text-xl font-bold text-indigo-900 mb-4 flex items-center">${domain.icon} ${domain.name}</h3>`;
+        
+        domain.qs.forEach((q, i) => {
+            const qId = `${domain.id}-${i}`;
+            const qBox = document.createElement("div");
+            qBox.className = "mb-4 pb-4 border-b border-slate-100";
+            qBox.innerHTML = `
+                <p class="text-slate-700 mb-2 font-medium leading-relaxed">${q}</p>
+                <div class="flex justify-between items-center max-w-md radio-group px-2">
+                    <span class="text-xs text-slate-400">違う</span>
+                    ${[1,2,3,4,5].map(v => `
+                        <input type="radio" name="${qId}" id="${qId}-${v}" value="${v}" class="hidden" ${v===3 ? 'checked' : ''}>
+                        <label for="${qId}-${v}" class="w-10 h-10 flex items-center justify-center border-2 rounded-full cursor-pointer transition-colors hover:border-indigo-400 font-bold">${v}</label>
+                    `).join('')}
+                    <span class="text-xs text-slate-400">そう思う</span>
+                </div>
+            `;
+            section.appendChild(qBox);
+        });
+        quizDiv.appendChild(section);
+    });
+}
+
+// 結果を表示する関数
+function showResult() {
+    const resultDiv = document.getElementById("result");
+    resultDiv.classList.remove("hidden");
+    
+    // スコア計算
+    let scores = DOMAINS.map(domain => {
+        const vals = domain.qs.map((_, i) => {
+            const radio = document.querySelector(`input[name="${domain.id}-${i}"]:checked`);
+            return radio ? parseInt(radio.value) : 3;
+        });
+        const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+        return { name: domain.name, icon: domain.icon, score: avg };
+    });
+
+    // スコア順に並び替え
+    scores.sort((a, b) => b.score - a.score);
+    const top = scores[0];
+
+    // おすすめ武器のデータ
+    const weapons = {
+        "言葉の剣士": { title: "1分間アウトプット", icon: "🏹" },
+        "理詰めの賢者": { title: "考える道具", icon: "🧪" },
+        "イメージの魔術師": { title: "ビジュアル化", icon: "🖼️" },
+        "大地の探索者": { title: "たとえば↔つまり", icon: "🌳" },
+        "音の指揮者": { title: "重ねぬり（音読）", icon: "🎶" },
+        "行動の勇者": { title: "思い出しチャレンジ", icon: "🏃" },
+        "共感のドルイド": { title: "人に教える", icon: "🤝" },
+        "内なる探究者": { title: "ふりかえりタイム", icon: "🧘" }
+    };
+
+    const weapon = weapons[top.name];
+
+    // 結果のHTMLを表示
+    resultDiv.innerHTML = `
+        <div class="text-center mb-8">
+            <h2 class="text-2xl font-bold text-slate-800 italic">― あなたの特性 ―</h2>
+            <div class="text-7xl my-6 animate-bounce drop-shadow-lg">${top.icon}</div>
+            <div class="text-4xl font-black text-indigo-600 mb-2">${top.name}</div>
+            <p class="text-slate-500 text-sm">潜在意識に眠る能力が可視化されました。</p>
+        </div>
+
+        <div class="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl p-6 text-white shadow-xl mb-10 transform -rotate-1">
+            <div class="flex items-center mb-4">
+                <span class="bg-white/20 p-2 rounded-lg mr-3 text-2xl">${weapon.icon}</span>
+                <h3 class="text-xl font-bold tracking-wider">おすすめの武器</h3>
+            </div>
+            <div class="text-3xl font-black mb-4 border-b border-indigo-300 pb-3 text-yellow-300">
+                「${weapon.title}」
+            </div>
+            <p class="text-indigo-50 text-sm leading-relaxed font-medium">
+                この武器を使いこなすことで、あなたの学びと成長は劇的に加速します。今日からさっそく試してみましょう！
+            </p>
+        </div>
+
+        <div class="space-y-4">
+            <h4 class="font-bold text-slate-700 text-sm flex items-center uppercase tracking-tighter">
+                <span class="w-8 h-px bg-slate-300 mr-2"></span>能力分布パラメーター
+            </h4>
+            ${scores.map(s => `
+                <div class="relative pt-1">
+                    <div class="flex items-center justify-between mb-1 px-1">
+                        <span class="text-xs font-bold text-slate-600">${s.icon} ${s.name}</span>
+                        <span class="text-xs font-black text-indigo-600">${(s.score * 20).toFixed(0)}%</span>
+                    </div>
+                    <div class="overflow-hidden h-3 rounded-full bg-slate-200">
+                        <div style="width:${s.score * 20}%" class="h-full bg-indigo-500 rounded-full transition-all duration-1000 shadow-inner"></div>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+        
+        <div class="mt-10 text-center border-t border-slate-200 pt-6">
+            <button onclick="window.print()" class="px-6 py-2 border-2 border-indigo-200 text-indigo-500 rounded-full text-xs font-bold hover:bg-indigo-50 transition-colors">
+                この冒険の記録を保存する（印刷）
+            </button>
+        </div>
+    `;
+    
+    // 結果まで画面をスムーズに動かす
+    resultDiv.scrollIntoView({ behavior: 'smooth' });
+}
+
+// ページ読み込み時にクイズを作る
+renderQuiz();
+</script>
+
+</body>
+</html>
